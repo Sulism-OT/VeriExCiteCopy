@@ -9,6 +9,7 @@ from veriexcite import (
 import io
 import pandas as pd
 import PyPDF2
+import time
 
 
 def extract_text_from_pdf(pdf_file: st.runtime.uploaded_file_manager.UploadedFile) -> str:
@@ -99,6 +100,7 @@ def process_and_verify(bib_text: str) -> pd.DataFrame:
     progress_text.text(f"Validated: {verified_count} | Invalid/Not Found: {warning_count}")
 
     for index, row in df.iterrows():
+        time.sleep(6)
         result = search_title(references[index])
         df.loc[index, "Status"] = status_emoji.get(result.status.value, result.status.value)
         df.loc[index, "Explanation"] = result.explanation
