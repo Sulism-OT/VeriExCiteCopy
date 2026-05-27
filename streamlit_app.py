@@ -100,19 +100,89 @@ def process_and_verify(bib_text: str) -> pd.DataFrame:
     progress_text.text(f"Validated: {verified_count} | Invalid/Not Found: {warning_count}")
 
     for index, row in df.iterrows():
-        time.sleep(6)
-        result = search_title(references[index])
-        df.loc[index, "Status"] = status_emoji.get(result.status.value, result.status.value)
-        df.loc[index, "Explanation"] = result.explanation
-        if result.status == ReferenceStatus.VALIDATED:
-            verified_count += 1
-        else:
-            warning_count += 1
+        max_retries = 3
+        retry_count = 0
+        success = False
+
+        # Keep trying until it succeeds OR we hit 3 failures
+        while not success and retry_count < max_retries:
+            time.sleep(6)  # Our standard speed bump
+            
+            try:
+                result = search_title(references[index])
+                df.loc[index, "Status"] = status_emoji.get(result.status.value, result.status.value)
+                df.loc[index, "Explanation"] = result.explanation
+                if result.status == ReferenceStatus.VALIDATED:
+                    verified_count += 1
+                else:
+                    warning_count += 1
+                    
+                success = True  # It worked! This breaks the loop so it moves to the next reference.
+                
+            except Exception as e:
+                retry_count += 1
+                if retry_count < max_retries:
+                    # Update screen to show it's pausing and trying again
+                    df.loc[index, "Status"] = f"🔄 Retrying ({retry_count}/3)"
+                    df.loc[index, "Explanation"] = "Google API overloaded. Pausing 15 seconds to try again..."
+                    
+                    # Update the screen right now so you can see it retrying
+                    df_display = df[['First Author', 'Year', 'Title', 'Type', 'URL', 'Raw Text', 'Status', 'Explanation']].copy()
+                    df_display.index = df_display.index + 1
+                    placeholder.dataframe(df_display, use_container_width=True, column_config=column_config)
+                    
+                    time.sleep(15)  # Wait a longer time before the retry
+                else:
+                    # It failed 3 times, we give up on this specific reference
+                    df.loc[index, "Status"] = "⚠️ API Error"
+                    df.loc[index, "Explanation"] = "Google API failed after 3 attempts. Please verify manually."
+                    warning_count += 1
+
+        # Final screen update before moving to the next row
         df_display = df[[
             'First Author', 'Year', 'Title', 'Type', 'URL', 'Raw Text', 'Status', 'Explanation']].copy()
         df_display.index = df_display.index + 1  # keep human-readable numbering
         placeholder.dataframe(df_display, use_container_width=True, column_config=column_config)
         progress_text.text(f"Validated: {verified_count} | Invalid/Not Found: {warning_count}")
+   #     time.sleep(6)
+   #=== Gemini-code to not stop but keep going if API error
+    # Tell the app to try checking, but not to crash if Google is busy
+    #    try:
+     #       result = search_title(references[index])
+      #      df.loc[index, "Status"] = status_emoji.get(result.status.value, result.status.value)
+      #      df.loc[index, "Explanation"] = result.explanation
+      #      if result.status == ReferenceStatus.VALIDATED:
+      #          verified_count += 1
+      #      else:
+      #          warning_count += 1
+                
+        # If Google throws a 503, just mark this ONE reference as an error and keep going
+      #  except Exception as e:
+      #      df.loc[index, "Status"] = "⚠️ API Error"
+      #      df.loc[index, "Explanation"] = "Google API was overloaded. Please verify this one manually."
+      #      warning_count += 1
+      #      time.sleep(10)  # Pause an extra 10 seconds to let Google's servers catch their breath
+
+        # Update the screen
+      #  df_display = df[[
+      #      'First Author', 'Year', 'Title', 'Type', 'URL', 'Raw Text', 'Status', 'Explanation']].copy()
+      #  df_display.index = df_display.index + 1  # keep human-readable numbering
+      #  placeholder.dataframe(df_display, use_container_width=True, column_config=column_config)
+      #  progress_text.text(f"Validated: {verified_count} | Invalid/Not Found: {warning_count}")
+
+    # === original code ===
+    # result = search_title(references[index])
+       # df.loc[index, "Status"] = status_emoji.get(result.status.value, result.status.value)
+       # df.loc[index, "Explanation"] = result.explanation
+       # if result.status == ReferenceStatus.VALIDATED:
+       #    verified_count += 1
+       # else:
+       #     warning_count += 1
+       # df_display = df[[
+       #     'First Author', 'Year', 'Title', 'Type', 'URL', 'Raw Text', 'Status', 'Explanation']].copy()
+       # df_display.index = df_display.index + 1  # keep human-readable numbering
+       # placeholder.dataframe(df_display, use_container_width=True, column_config=column_config)
+       # progress_text.text(f"Validated: {verified_count} | Invalid/Not Found: {warning_count}")
 
     return df
 
