@@ -93,7 +93,7 @@ def process_and_verify(bib_text: str) -> pd.DataFrame:
     df_display = df[[
         'First Author', 'Year', 'Title', 'Type', 'URL', 'Raw Text', 'Status', 'Explanation']].copy()
     df_display.index = df_display.index + 1  # display rows starting at 1
-    placeholder.dataframe(df_display, use_container_width=True, column_config=column_config)
+    placeholder.dataframe(df_display, use_container_width=False, column_config=column_config)
 
     verified_count = 0
     warning_count = 0
@@ -129,7 +129,7 @@ def process_and_verify(bib_text: str) -> pd.DataFrame:
                     # Update the screen right now so you can see it retrying
                     df_display = df[['First Author', 'Year', 'Title', 'Type', 'URL', 'Raw Text', 'Status', 'Explanation']].copy()
                     df_display.index = df_display.index + 1
-                    placeholder.dataframe(df_display, use_container_width=True, column_config=column_config)
+                    placeholder.dataframe(df_display, use_container_width=False, column_config=column_config)
                     
                     time.sleep(15)  # Wait a longer time before the retry
                 else:
@@ -142,7 +142,7 @@ def process_and_verify(bib_text: str) -> pd.DataFrame:
         df_display = df[[
             'First Author', 'Year', 'Title', 'Type', 'URL', 'Raw Text', 'Status', 'Explanation']].copy()
         df_display.index = df_display.index + 1  # keep human-readable numbering
-        placeholder.dataframe(df_display, use_container_width=True, column_config=column_config)
+        placeholder.dataframe(df_display, use_container_width=False, column_config=column_config)
         progress_text.text(f"Validated: {verified_count} | Invalid/Not Found: {warning_count}")
    #     time.sleep(6)
    #=== Gemini-code to not stop but keep going if API error
@@ -167,7 +167,7 @@ def process_and_verify(bib_text: str) -> pd.DataFrame:
       #  df_display = df[[
       #      'First Author', 'Year', 'Title', 'Type', 'URL', 'Raw Text', 'Status', 'Explanation']].copy()
       #  df_display.index = df_display.index + 1  # keep human-readable numbering
-      #  placeholder.dataframe(df_display, use_container_width=True, column_config=column_config)
+      #  placeholder.dataframe(df_display, use_container_width=False, column_config=column_config)
       #  progress_text.text(f"Validated: {verified_count} | Invalid/Not Found: {warning_count}")
 
     # === original code ===
@@ -181,7 +181,7 @@ def process_and_verify(bib_text: str) -> pd.DataFrame:
        # df_display = df[[
        #     'First Author', 'Year', 'Title', 'Type', 'URL', 'Raw Text', 'Status', 'Explanation']].copy()
        # df_display.index = df_display.index + 1  # keep human-readable numbering
-       # placeholder.dataframe(df_display, use_container_width=True, column_config=column_config)
+       # placeholder.dataframe(df_display, use_container_width=False, column_config=column_config)
        # progress_text.text(f"Validated: {verified_count} | Invalid/Not Found: {warning_count}")
 
     return df
